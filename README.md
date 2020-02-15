@@ -1,6 +1,7 @@
 # goxds
 CLI for XDS
 
+```
 NAME:
    GoXDS - Fullnode CLI
 
@@ -33,3 +34,4 @@ Examples:
     goxds staking-quit
     goxds staking-info
     goxds wallet-receive
+```
