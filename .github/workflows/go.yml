@@ -9,10 +9,25 @@ jobs:
         uses: actions/setup-go@v1
         with:
           go-version: 1.13
+      
+      - name: setup env
+        run: |
+          echo "::set-env name=GOPATH::$(dirname $GITHUB_WORKSPACE)"
+          echo "::add-path::$(dirname $GITHUB_WORKSPACE)/bin"
+        shell: bash          
 
       - name: Check out source code
         uses: actions/checkout@v1
-   
+
+      - name: echo env
+        run: |
+          echo $(go env GOPATH)
+          echo $(go env GOROOT)
+          echo $PATH
+
+      - name: go get
+        run: go get -v -u ./...   
+
       - name: Build
         env:
           GOPROXY: "https://proxy.golang.org"
