@@ -12,10 +12,7 @@ jobs:
 
       - name: Check out source code
         uses: actions/checkout@v1
-
-      - name: CD to src
-        run: cd src
-
+   
       - name: Build
         env:
           GOPROXY: "https://proxy.golang.org"
