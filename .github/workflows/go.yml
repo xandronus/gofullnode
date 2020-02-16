@@ -37,4 +37,5 @@ jobs:
         uses: skx/github-action-publish-binaries@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        args: "./src/goxds.exe"
+        with:
+          args: "./src/goxds.exe"
