@@ -13,8 +13,7 @@ USAGE:
    goxds.exe [global options] command [command options] [walletname]
 
 VERSION:
-   1.0.0
-
+   0.9.2
 AUTHOR:
    xandronus <xandronus@gmail.com>
 
