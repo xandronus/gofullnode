@@ -1,6 +1,10 @@
 # goxds
 CLI for XDS
 
+Release binaries here: https://github.com/xandronus/goxds/releases
+
+Start XDS fullnode and then run goxds to interact with the fullnode.
+
 ```
 NAME:
    GoXDS - Fullnode CLI
