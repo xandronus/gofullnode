@@ -37,4 +37,5 @@ Examples:
     goxds staking-quit
     goxds staking-info
     goxds wallet-receive
+    goxds wallet-send --password mywalletpswd 5 xds1qhyfwk5m773r44hq7hrav3zksc5zk6e4l30wc0e
 ```
