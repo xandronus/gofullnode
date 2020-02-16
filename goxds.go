@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/urfave/cli"
@@ -113,8 +114,15 @@ func httpCreateWallet(walletname string, mneumonic string, password string) stri
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println(string(requestBody))
 
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusOK {
+		fmt.Println("OK")
+	} else {
+		fmt.Println("Failed")
+	}
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
@@ -144,8 +152,6 @@ func httpStopStaking() string {
 
 func httpCreatePrivateKey() string {
 	url := getHostName() + "/api/Wallet/mnemonic?language=English&wordCount=12"
-	fmt.Println(url)
-
 	fmt.Println(url)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -180,7 +186,7 @@ func createWalletCommand() *cli.Command {
 			fmt.Println("Return wallet mnemonic")
 			fmt.Println("password:", c.String("password"))
 			mneumonic := httpCreatePrivateKey()
-			fmt.Println(httpCreateWallet(walletname, mneumonic, c.String("password")))
+			fmt.Println(httpCreateWallet(walletname, strings.Trim(mneumonic, "\""), c.String("password")))
 			fmt.Println("-------------------")
 			fmt.Println("Record this info")
 			fmt.Println("-------------------")
