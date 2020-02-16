@@ -24,7 +24,7 @@ func createCliApp() *cli.App {
 			Email: "xandronus@gmail.com",
 		},
 	}
-	app.Version = "1.0.0"
+	app.Version = "0.9.2"
 	app.Compiled = time.Now()
 	app.ArgsUsage = "[walletname]"
 	return app
