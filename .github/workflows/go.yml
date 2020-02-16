@@ -26,7 +26,7 @@ jobs:
           echo $PATH
 
       - name: go get
-        run: go get -v -u github.com/${GITHUB_REPOSITORY}/src
+        run: go get -v -u github.com/xandronus/goxds/src
 
       - name: Build
         env:
