@@ -208,7 +208,7 @@ type buildTransactionRequest struct {
 type buildTransactionResponse struct {
 	Fee           int64  `json:"fee"`
 	Hex           string `json:"hex"`
-	TransactionId string `json:"transactionId`
+	TransactionId string `json:"transactionId"`
 }
 
 func httpBuildTransaction(walletname string, pwd string, sendAddress string, coins string, fee string) string {
