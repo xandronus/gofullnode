@@ -175,6 +175,113 @@ func httpCreatePrivateKey() string {
 	return string(body)
 }
 
+func httpAddNode(ip string) string {
+	url := getHostName() + "/api/ConnectionManager/addnode?endpoint=" + ip + "&command=add"
+	fmt.Println(url)
+	resp, err := http.Get(url)
+	if err != nil {
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	return string(body)
+}
+
+type recipientRequest struct {
+	DestinationAddress string `json:"destinationAddress"`
+	Amount             string `json:"amount"`
+}
+
+type buildTransactionRequest struct {
+	FeeAmount           string             `json:"feeAmount"`
+	Password            string             `json:"password"`
+	SegwitChangeAddress bool               `json:"segwitChangeAddress"`
+	WalletName          string             `json:"walletName"`
+	Recipients          []recipientRequest `json:"recipients"`
+}
+
+type buildTransactionResponse struct {
+	Fee           int64  `json:"fee"`
+	Hex           string `json:"hex"`
+	TransactionId string `json:"transactionId`
+}
+
+func httpBuildTransaction(walletname string, pwd string, sendAddress string, coins string, fee string) string {
+	url := getHostName() + "/api/wallet/build-transaction"
+	fmt.Println(url)
+
+	transRequest := buildTransactionRequest{
+		FeeAmount:           fee,
+		Password:            pwd,
+		SegwitChangeAddress: true,
+		WalletName:          walletname,
+		Recipients: []recipientRequest{
+			recipientRequest{
+				DestinationAddress: sendAddress,
+				Amount:             coins,
+			},
+		},
+	}
+
+	requestBody, err := json.Marshal(transRequest)
+	fmt.Println("-- Request --")
+	fmt.Println(jsonPrettyPrint(string(requestBody)))
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
+	if err != nil {
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusOK {
+		fmt.Println("OK")
+	} else {
+		fmt.Println("Failed")
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	return string(body)
+}
+
+func httpSendTransaction(hex string) string {
+	url := getHostName() + "/api/wallet/send-transaction"
+	fmt.Println(url)
+
+	requestBody, err := json.Marshal(map[string]string{
+		"hex": hex,
+	})
+
+	fmt.Println("-- Request --")
+	fmt.Println(jsonPrettyPrint(string(requestBody)))
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
+	if err != nil {
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusOK {
+		fmt.Println("OK")
+	} else {
+		fmt.Println("Failed")
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	return string(body)
+}
+
 func createWalletCommand() *cli.Command {
 	return &cli.Command{
 		Name:    "wallet-create",
@@ -278,13 +385,89 @@ func receiveWalletCommand() *cli.Command {
 	}
 }
 
+func addNodeCommand() *cli.Command {
+	return &cli.Command{
+		Name:     "node-add",
+		Aliases:  []string{"na"},
+		Usage:    "adds a peer",
+		Category: "Node",
+		Action: func(c *cli.Context) error {
+			fmt.Println("Executing 'node-add'")
+			if c.Args().First() != "" {
+				ip := c.Args().First()
+				fmt.Println(jsonPrettyPrint(httpAddNode(ip)))
+			} else {
+				fmt.Println("Error. Argument [ip] is required.")
+			}
+
+			return nil
+		},
+	}
+}
+
+func sendWalletCommand() *cli.Command {
+	return &cli.Command{
+		Name:     "wallet-send",
+		Aliases:  []string{"ws"},
+		Usage:    "sends coins from wallet to address",
+		Category: "Wallet",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "password, p",
+				Usage:    "wallet password",
+				Required: true,
+			},
+			&cli.StringFlag{
+				Name:  "fee, f",
+				Usage: "transaction fee",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			fmt.Println("Executing 'wallet-send'")
+			walletName := "default"
+			sendAddress := ""
+			amount := "0.0"
+			fee := "0.01"
+			if c.NArg() > 2 {
+				walletName = c.Args().Get(0)
+				amount = c.Args().Get(1)
+				sendAddress = c.Args().Get(2)
+			} else if c.NArg() > 1 {
+				amount = c.Args().Get(0)
+				sendAddress = c.Args().Get(1)
+			} else {
+				fmt.Println("Error. Arguments [sendAddress] [amount] are required.")
+				return nil
+			}
+
+			if c.String("fee") != "" {
+				fee = c.String("fee")
+			}
+
+			transRespText := httpBuildTransaction(walletName, c.String("password"), sendAddress, amount, fee)
+			fmt.Println("-- Response --")
+			fmt.Println(jsonPrettyPrint(transRespText))
+			var transResp buildTransactionResponse
+			json.Unmarshal([]byte(transRespText), &transResp)
+
+			sendTransRespText := httpSendTransaction(transResp.Hex)
+			fmt.Println("-- Response --")
+			fmt.Println(jsonPrettyPrint(sendTransRespText))
+
+			return nil
+		},
+	}
+}
+
 func addCommands(app *cli.App) {
 	app.Commands = []*cli.Command{
 		createWalletCommand(),
 		receiveWalletCommand(),
+		sendWalletCommand(),
 		startStakingCommand(),
 		stopStakingCommand(),
 		stakingInfoCommand(),
+		addNodeCommand(),
 	}
 }
 
