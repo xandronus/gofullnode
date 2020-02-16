@@ -30,6 +30,15 @@ func createCliApp() *cli.App {
 	return app
 }
 
+func jsonPrettyPrint(in string) string {
+	var out bytes.Buffer
+	err := json.Indent(&out, []byte(in), "", "  ")
+	if err != nil {
+		return in
+	}
+	return out.String()
+}
+
 func getWalletName(c *cli.Context) string {
 	walletName := "default"
 	if c.Args().First() != "" {
@@ -114,7 +123,6 @@ func httpCreateWallet(walletname string, mneumonic string, password string) stri
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(string(requestBody))
 
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusOK {
@@ -219,7 +227,7 @@ func startStakingCommand() *cli.Command {
 			httpStartStaking(walletname, c.String("password"))
 			fmt.Println("Starting to stake (will take approx 1 min)...")
 			time.Sleep(60 * time.Second)
-			fmt.Println(httpGetStakingInfo())
+			fmt.Println(jsonPrettyPrint(httpGetStakingInfo()))
 			return nil
 		},
 	}
@@ -234,7 +242,7 @@ func stopStakingCommand() *cli.Command {
 		Action: func(c *cli.Context) error {
 			fmt.Println("Executing 'staking-quit'")
 			httpStopStaking()
-			fmt.Println(httpGetStakingInfo())
+			fmt.Println(jsonPrettyPrint(httpGetStakingInfo()))
 			return nil
 		},
 	}
@@ -248,7 +256,7 @@ func stakingInfoCommand() *cli.Command {
 		Category: "Mining",
 		Action: func(c *cli.Context) error {
 			fmt.Println("Executing 'staking-info'")
-			fmt.Println(httpGetStakingInfo())
+			fmt.Println(jsonPrettyPrint(httpGetStakingInfo()))
 			return nil
 		},
 	}
@@ -288,35 +296,3 @@ func main() {
 		log.Fatal(err)
 	}
 }
-
-// func main() {
-// http://localhost:48334/api/Wallet/unusedaddress?WalletName=default&AccountName=account%200&Segwit=true
-// 	APIURL := "https://jsonplaceholder.typicode.com/users"
-// 	req, err := http.NewRequest(http.MethodGet, APIURL, nil)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	client := http.DefaultClient
-// 	resp, err := client.Do(req)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	defer resp.Body.Close()
-// 	body, err := ioutil.ReadAll(resp.Body)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-
-// 	var u Users
-// 	json.Unmarshal(body, &u)
-
-// 	msgText := "To: {{.Email}}\nHi {{.Name}}! There is a new post!\n\n\n"
-// 	t := template.Must(template.New("msg").Parse(msgText))
-
-// 	for _, r := range u {
-// 		err := t.Execute(os.Stdout, r)
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 	}
-// }
