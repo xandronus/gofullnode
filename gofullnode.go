@@ -27,6 +27,13 @@ func createCliApp() *cli.App {
 	app.Version = "0.9.3"
 	app.Compiled = time.Now()
 	app.ArgsUsage = "[walletname]"
+	app.Flags = []cli.Flag{
+		&cli.StringFlag{
+			Name:  "host",
+			Value: "http://localhost:48334",
+			Usage: "Fullnode API hostname",
+		},
+	}
 	return app
 }
 
@@ -47,12 +54,12 @@ func getWalletName(c *cli.Context) string {
 	return walletName
 }
 
-func getHostName() string {
-	return "http://localhost:48334"
+func getHostName(c *cli.Context) string {
+	return c.String("host")
 }
 
-func httpGetStakingInfo() string {
-	url := getHostName() + "/api/Staking/getstakinginfo"
+func httpGetStakingInfo(hostname string) string {
+	url := hostname + "/api/Staking/getstakinginfo"
 	fmt.Println(url)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -68,8 +75,8 @@ func httpGetStakingInfo() string {
 	return string(body)
 }
 
-func httpReceiveAddr(walletname string) string {
-	url := getHostName() + "/api/Wallet/unusedaddress?WalletName=" + walletname + "&AccountName=account%200&Segwit=true"
+func httpReceiveAddr(hostname string, walletname string) string {
+	url := hostname + "/api/Wallet/unusedaddress?WalletName=" + walletname + "&AccountName=account%200&Segwit=true"
 	fmt.Println(url)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -87,8 +94,8 @@ func httpReceiveAddr(walletname string) string {
 	return address
 }
 
-func httpStartStaking(walletname string, password string) string {
-	url := getHostName() + "/api/Staking/startstaking"
+func httpStartStaking(hostname string, walletname string, password string) string {
+	url := hostname + "/api/Staking/startstaking"
 	fmt.Println(url)
 
 	requestBody, err := json.Marshal(map[string]string{
@@ -109,8 +116,8 @@ func httpStartStaking(walletname string, password string) string {
 	return string(body)
 }
 
-func httpCreateWallet(walletname string, mneumonic string, password string) string {
-	url := getHostName() + "/api/wallet/create"
+func httpCreateWallet(hostname string, walletname string, mneumonic string, password string) string {
+	url := hostname + "/api/wallet/create"
 	fmt.Println(url)
 
 	requestBody, err := json.Marshal(map[string]string{
@@ -139,8 +146,8 @@ func httpCreateWallet(walletname string, mneumonic string, password string) stri
 	return string(body)
 }
 
-func httpStopStaking() string {
-	url := getHostName() + "/api/Staking/stopstaking"
+func httpStopStaking(hostname string) string {
+	url := hostname + "/api/Staking/stopstaking"
 	fmt.Println(url)
 
 	requestBody, err := json.Marshal(true)
@@ -158,8 +165,8 @@ func httpStopStaking() string {
 	return string(body)
 }
 
-func httpCreatePrivateKey() string {
-	url := getHostName() + "/api/Wallet/mnemonic?language=English&wordCount=12"
+func httpCreatePrivateKey(hostname string) string {
+	url := hostname + "/api/Wallet/mnemonic?language=English&wordCount=12"
 	fmt.Println(url)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -175,8 +182,8 @@ func httpCreatePrivateKey() string {
 	return string(body)
 }
 
-func httpAddNode(ip string) string {
-	url := getHostName() + "/api/ConnectionManager/addnode?endpoint=" + ip + "&command=add"
+func httpAddNode(hostname string, ip string) string {
+	url := hostname + "/api/ConnectionManager/addnode?endpoint=" + ip + "&command=add"
 	fmt.Println(url)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -211,8 +218,8 @@ type buildTransactionResponse struct {
 	TransactionId string `json:"transactionId"`
 }
 
-func httpBuildTransaction(walletname string, pwd string, sendAddress string, coins string, fee string) string {
-	url := getHostName() + "/api/wallet/build-transaction"
+func httpBuildTransaction(hostname string, walletname string, pwd string, sendAddress string, coins string, fee string) string {
+	url := hostname + "/api/wallet/build-transaction"
 	fmt.Println(url)
 
 	transRequest := buildTransactionRequest{
@@ -251,8 +258,8 @@ func httpBuildTransaction(walletname string, pwd string, sendAddress string, coi
 	return string(body)
 }
 
-func httpSendTransaction(hex string) string {
-	url := getHostName() + "/api/wallet/send-transaction"
+func httpSendTransaction(hostname string, hex string) string {
+	url := hostname + "/api/wallet/send-transaction"
 	fmt.Println(url)
 
 	requestBody, err := json.Marshal(map[string]string{
@@ -300,8 +307,8 @@ func createWalletCommand() *cli.Command {
 			fmt.Println("Executing 'wallet-create' for walletname:", walletname)
 			fmt.Println("Return wallet mnemonic")
 			fmt.Println("password:", c.String("password"))
-			mneumonic := httpCreatePrivateKey()
-			fmt.Println(httpCreateWallet(walletname, strings.Trim(mneumonic, "\""), c.String("password")))
+			mneumonic := httpCreatePrivateKey(getHostName(c))
+			fmt.Println(httpCreateWallet(getHostName(c), walletname, strings.Trim(mneumonic, "\""), c.String("password")))
 			fmt.Println("-------------------")
 			fmt.Println("Record this info")
 			fmt.Println("-------------------")
@@ -331,10 +338,10 @@ func startStakingCommand() *cli.Command {
 		Action: func(c *cli.Context) error {
 			walletname := getWalletName(c)
 			fmt.Println("Executing 'staking-start' for walletname:", walletname)
-			httpStartStaking(walletname, c.String("password"))
+			httpStartStaking(getHostName(c), walletname, c.String("password"))
 			fmt.Println("Starting to stake (will take approx 1 min)...")
 			time.Sleep(60 * time.Second)
-			fmt.Println(jsonPrettyPrint(httpGetStakingInfo()))
+			fmt.Println(jsonPrettyPrint(httpGetStakingInfo(getHostName(c))))
 			return nil
 		},
 	}
@@ -348,8 +355,8 @@ func stopStakingCommand() *cli.Command {
 		Category: "Mining",
 		Action: func(c *cli.Context) error {
 			fmt.Println("Executing 'staking-quit'")
-			httpStopStaking()
-			fmt.Println(jsonPrettyPrint(httpGetStakingInfo()))
+			httpStopStaking(getHostName(c))
+			fmt.Println(jsonPrettyPrint(httpGetStakingInfo(getHostName(c))))
 			return nil
 		},
 	}
@@ -363,7 +370,7 @@ func stakingInfoCommand() *cli.Command {
 		Category: "Mining",
 		Action: func(c *cli.Context) error {
 			fmt.Println("Executing 'staking-info'")
-			fmt.Println(jsonPrettyPrint(httpGetStakingInfo()))
+			fmt.Println(jsonPrettyPrint(httpGetStakingInfo(getHostName(c))))
 			return nil
 		},
 	}
@@ -378,7 +385,7 @@ func receiveWalletCommand() *cli.Command {
 		Action: func(c *cli.Context) error {
 			walletName := getWalletName(c)
 			fmt.Println("Executing 'wallet-receive' address for walletname:", walletName)
-			address := httpReceiveAddr(walletName)
+			address := httpReceiveAddr(getHostName(c), walletName)
 			fmt.Println(address)
 			return nil
 		},
@@ -395,7 +402,7 @@ func addNodeCommand() *cli.Command {
 			fmt.Println("Executing 'node-add'")
 			if c.Args().First() != "" {
 				ip := c.Args().First()
-				fmt.Println(jsonPrettyPrint(httpAddNode(ip)))
+				fmt.Println(jsonPrettyPrint(httpAddNode(getHostName(c), ip)))
 			} else {
 				fmt.Println("Error. Argument [ip] is required.")
 			}
@@ -444,13 +451,13 @@ func sendWalletCommand() *cli.Command {
 				fee = c.String("fee")
 			}
 
-			transRespText := httpBuildTransaction(walletName, c.String("password"), sendAddress, amount, fee)
+			transRespText := httpBuildTransaction(getHostName(c), walletName, c.String("password"), sendAddress, amount, fee)
 			fmt.Println("-- Response --")
 			fmt.Println(jsonPrettyPrint(transRespText))
 			var transResp buildTransactionResponse
 			json.Unmarshal([]byte(transRespText), &transResp)
 
-			sendTransRespText := httpSendTransaction(transResp.Hex)
+			sendTransRespText := httpSendTransaction(getHostName(c), transResp.Hex)
 			fmt.Println("-- Response --")
 			fmt.Println(jsonPrettyPrint(sendTransRespText))
 
