@@ -16,7 +16,7 @@ import (
 
 func createCliApp() *cli.App {
 	app := cli.NewApp()
-	app.Name = "GoXDS"
+	app.Name = "GoFullnode"
 	app.Usage = "Fullnode CLI"
 	app.Authors = []*cli.Author{
 		&cli.Author{
@@ -24,7 +24,7 @@ func createCliApp() *cli.App {
 			Email: "xandronus@gmail.com",
 		},
 	}
-	app.Version = "0.9.2"
+	app.Version = "0.9.3"
 	app.Compiled = time.Now()
 	app.ArgsUsage = "[walletname]"
 	return app

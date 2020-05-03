@@ -1,16 +1,16 @@
 # goxds
-CLI for XDS
+CLI for Blockcore FullNodes
 
-Release binaries here: https://github.com/xandronus/goxds/releases
+Release binaries here: https://github.com/xandronus/gofullnode/releases
 
-Start XDS fullnode and then run goxds to interact with the fullnode.
+Start a blockcore fullnode and then run gofullnode to interact with the fullnode.
 
 ```
 NAME:
-   GoXDS - Fullnode CLI
+   Gofullnode - Fullnode CLI
 
 USAGE:
-   goxds [global options] command [command options] [walletname]
+   gofullnode [global options] command [command options] [walletname]
 
 VERSION:
    0.9.2
@@ -36,11 +36,11 @@ GLOBAL OPTIONS:
    --version, -v  print the version (default: false)
 
 Examples:
-    goxds wallet-create --password mywalletpswd
-    goxds staking-start --password mywalletpswd
-    goxds staking-quit
-    goxds staking-info
-    goxds wallet-receive
-    goxds wallet-send --password mywalletpswd 5 xds1qhyfwk5m773r44hq7hrav3zksc5zk6e4l30wc0e
-    goxds node-add 192.168.0.1
+    gofullnode wallet-create --password mywalletpswd
+    gofullnode staking-start --password mywalletpswd
+    gofullnode staking-quit
+    gofullnode staking-info
+    gofullnode wallet-receive
+    gofullnode wallet-send --password mywalletpswd 5 xds1qhyfwk5m773r44hq7hrav3zksc5zk6e4l30wc0e
+    gofullnode node-add 192.168.0.1
 ```
