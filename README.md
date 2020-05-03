@@ -1,4 +1,4 @@
-# goxds
+# gofullnode
 CLI for Blockcore FullNodes
 
 Release binaries here: https://github.com/xandronus/gofullnode/releases
