@@ -13,7 +13,7 @@ USAGE:
    gofullnode [global options] command [command options] [walletname]
 
 VERSION:
-   0.9.2
+   0.9.3
 
 AUTHOR:
    xandronus <xandronus@gmail.com>
